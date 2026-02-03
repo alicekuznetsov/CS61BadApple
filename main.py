@@ -5,6 +5,8 @@ import os
 frames_to_skip = 5
 frames_per_second = 30
 processing_buffer = 0.005
+new_frame_width = int(480 * 0.1)
+new_frame_height = int(360 * 0.1)
 sleep_time = (frames_to_skip/frames_per_second) - processing_buffer
 
 def get_next_frame(capture, frame_spacing):
@@ -47,7 +49,7 @@ def play_video_terminal(capture, sleep_time, frame_spacing):
     while True: 
         status, next_frame = get_next_frame(capture, frame_spacing)
 
-        resized_frame = cv.resize(next_frame, (150, 150))
+        resized_frame = cv.resize(next_frame, (new_frame_width, new_frame_height))
 
         print(frame_to_string(resized_frame, True))
         time.sleep(sleep_time)
@@ -59,7 +61,7 @@ def play_video_windows(capture, stop_key, sleep_time, frame_spacing):
     while True: 
         status, next_frame = get_next_frame(capture, frame_spacing)
 
-        resized_frame = cv.resize(next_frame, (150, 150))
+        resized_frame = cv.resize(next_frame, (new_frame_width, new_frame_height))
 
         cv.imshow('Raw Video', next_frame)
         cv.imshow('Resized Video', resized_frame)
@@ -75,14 +77,16 @@ def play_video_windows(capture, stop_key, sleep_time, frame_spacing):
 def write_to_txt(capture, frame_spacing):
     # Credit to https://www.geeksforgeeks.org/python/writing-to-file-in-python/
     with open("output.txt", "w", encoding="utf-8") as f:
-        f.write("If it has 2 colors,\n")
-        f.write("it can play Bad Apple.\n")
+        f.write("If it has 2 colors, it can play Bad Apple\n")
 
-    status, frame = get_next_frame(capture, frame_spacing)
+    status, next_frame = get_next_frame(capture, frame_spacing)
+    resized_frame = cv.resize(next_frame, (new_frame_width, new_frame_height))
+
     while status:
+        resized_frame = cv.resize(next_frame, (new_frame_width, new_frame_height))
         with open("output.txt", "a", encoding="utf-8") as f:
-            f.write(frame_to_string(frame, True)+"\n")
-        status, frame = get_next_frame(capture, frame_spacing)
+            f.write(frame_to_string(resized_frame, True))
+        status, next_frame = get_next_frame(capture, frame_spacing)
 
     print(f"All frames added to output.txt. Took {time.time() - start_time} seconds.")
 
@@ -90,6 +94,7 @@ def write_to_txt(capture, frame_spacing):
 if __name__ == "__main__":
     capture = cv.VideoCapture('bad_apple_raw.mp4')
 
+    print(f"Beginning write to output.txt")
     start_time = time.time()
     write_to_txt(capture, frames_to_skip)
 
