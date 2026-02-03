@@ -2,11 +2,11 @@ import cv2 as cv
 import time
 import os
 
-frames_to_skip = 5
+frames_to_skip = 3
 frames_per_second = 30
 processing_buffer = 0.005
-new_frame_width = int(480 * 0.1)
-new_frame_height = int(360 * 0.1)
+new_frame_width = int(480 * 0.4)
+new_frame_height = int(360 * 0.4)
 sleep_time = (frames_to_skip/frames_per_second) - processing_buffer
 
 def get_next_frame(capture, frame_spacing):
