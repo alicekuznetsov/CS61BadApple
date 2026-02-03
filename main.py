@@ -2,7 +2,7 @@ import cv2 as cv
 import time
 import os
 
-frames_to_skip = 3
+frames_to_skip = 2
 frames_per_second = 30
 processing_buffer = 0.005
 new_frame_width = int(480 * 0.4)
