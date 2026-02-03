@@ -2,31 +2,16 @@ import cv2 as cv
 import time
 import os
 
-
 frames_to_skip = 5
 frames_per_second = 30
 processing_buffer = 0.005
 sleep_time = (frames_to_skip/frames_per_second) - processing_buffer
 
-
-'''
-TODOS:
-- takes average pixel every 150 pixels (x and y)
-
-- Convert frame to string:
- 	- inputs a frame somehow (god knows how)
-	- outputs a string that is 22500 characters long (b for white, . for black)
-
-
-- Add Frame to Json
-	- timestamp, frame_data
-
-- Main function should then step a certain amount of frames
-
-- Export Json to file
-'''
-
 def get_next_frame(capture, frame_spacing):
+    """
+    Retrieve the next frame from a capture, skipping frame_spacing frames.
+    Returns: status (success/fail), frame
+    """
     if frame_spacing != 0:
         for _ in range(frame_spacing):
             if not capture.grab():
@@ -37,17 +22,21 @@ def get_next_frame(capture, frame_spacing):
     return capture.retrieve()
 
 
-def frame_to_string(frame):
+def frame_to_string(frame, new_lines):
+    """
+    Note: new_lines is used to add lines between each row in a given frame, not between frames.
+    """
     image_hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     
     output = ""
     for row in frame:
         for px in row:
             if (px[2] > 127):
-                output += " "
+                output += "."
             else:   
-                output += "0"
-        output += "\n"
+                output += "b"
+        if(new_lines):
+            output += "\n"
     
     return output
 
@@ -60,7 +49,7 @@ def play_video_terminal(capture, sleep_time, frame_spacing):
 
         resized_frame = cv.resize(next_frame, (150, 150))
 
-        print(frame_to_string(resized_frame))
+        print(frame_to_string(resized_frame, True))
         time.sleep(sleep_time)
         os.system('cls')
 
@@ -83,10 +72,25 @@ def play_video_windows(capture, stop_key, sleep_time, frame_spacing):
     # Close the window
     cv.destroyAllWindows()
 
+def write_to_txt(capture, frame_spacing):
+    # Credit to https://www.geeksforgeeks.org/python/writing-to-file-in-python/
+    with open("output.txt", "w", encoding="utf-8") as f:
+        f.write("If it has 2 colors,\n")
+        f.write("it can play Bad Apple.\n")
+
+    status, frame = get_next_frame(capture, frame_spacing)
+    while status:
+        with open("output.txt", "a", encoding="utf-8") as f:
+            f.write(frame_to_string(frame, True)+"\n")
+        status, frame = get_next_frame(capture, frame_spacing)
+
+    print(f"All frames added to output.txt. Took {time.time() - start_time} seconds.")
+
 
 if __name__ == "__main__":
     capture = cv.VideoCapture('bad_apple_raw.mp4')
 
-    play_video_terminal(capture, sleep_time, frames_to_skip)
+    start_time = time.time()
+    write_to_txt(capture, frames_to_skip)
 
     capture.release()
