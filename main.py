@@ -1,13 +1,14 @@
 import cv2 as cv
 import time
 
+frames_to_skip = 5
+frames_per_second = 30
+processing_buffer = 0.01
+
 
 '''
 TODOS:
-- probably OpenCV
-- inputs a video file
 - takes average pixel every 150 pixels (x and y)
-
 
 - Convert frame to string:
  	- inputs a frame somehow (god knows how)
@@ -21,28 +22,38 @@ TODOS:
 
 - Export Json to file
 '''
-def playVideo(capture, stopKey, framesPerSecond):
+def play_video(capture, stop_key, sleep_time, frame_spacing):
     isTrue, frame = capture.read()
 
     # Iterate through video frames until the given key is pressed
     while True: 
-        isTrue, frame = capture.read()
+        status, next_frame = get_next_frame(capture, frame_spacing)
 
-        cv.imshow('Raw Video', frame)
+        cv.imshow('Raw Video', next_frame)
 
-
-        time.sleep(1/framesPerSecond)
+        time.sleep(sleep_time)
         
-        if cv.waitKey(1) & 0xFF==ord(stopKey):
+        if cv.waitKey(1) & 0xFF==ord(stop_key):
             break
 
     # Close the window
-    capture.release()
     cv.destroyAllWindows()
+
+
+def get_next_frame(capture, frame_spacing):
+    if frame_spacing != 0:
+        for _ in range(frame_spacing):
+            if not capture.grab():
+                # hit end-of-stream or failure
+                return (False, None)
+
+    # retrieve the frame grabbed last
+    return capture.retrieve()
 
 
 if __name__ == "__main__":
     capture = cv.VideoCapture('bad_apple_raw.mp4')
 
-    playVideo(capture, 'd', 30)
+    play_video(capture, 'd', (frames_to_skip/frames_per_second) - processing_buffer, frames_to_skip)
 
+    capture.release()
