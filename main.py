@@ -34,9 +34,9 @@ def frame_to_string(frame, new_lines):
     for row in frame:
         for px in row:
             if (px[2] > 127):
-                output += "."
-            else:   
                 output += "b"
+            else:   
+                output += "."
         if(new_lines):
             output += "\n"
     
